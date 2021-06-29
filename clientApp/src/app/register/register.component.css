@@ -1,0 +1,17 @@
+.div-toolbar mat-card{
+    padding: 0%;
+    margin-top: 5%;
+}
+
+.login-form{
+  padding: 20px;
+}
+
+.errorMsg{
+    color: red;
+    text-align: center;
+}
+
+mat-form-field{
+    margin: 10p;
+}

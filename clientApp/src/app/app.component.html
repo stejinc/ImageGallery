@@ -1,0 +1,17 @@
+<div>
+  <!-- <mat-toolbar role="heading" color="primary">
+    <span>Image Gallery</span>
+    <a class="right" [routerLink]="['/login']">Login</a>
+  </mat-toolbar> -->
+  <div class="topnav">
+    <div>
+      <a>Image Gallery</a>
+    </div>
+    <div class="topnav-right">
+      <a routerLink="/login" routerLinkActive="active" *ngIf="!authService.isLoggedIn()">Login</a>
+      <a routerLink="/register" *ngIf="!authService.isLoggedIn()" routerLinkActive="active">Register</a>
+      <a routerLink="/login" *ngIf="authService.isLoggedIn()" (click)="authService.Logout()" routerLinkActive="active">Logout</a>
+    </div>
+  </div>
+  <router-outlet></router-outlet>
+</div>

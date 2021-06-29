@@ -1,0 +1,11 @@
+#fixedbutton {
+    position: fixed;
+    bottom: 70px;
+    right: 60px; 
+    font-size: 50px;
+}
+
+.image-size{
+    height: 300px;
+    width: 400px;
+}

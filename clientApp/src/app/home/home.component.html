@@ -1,0 +1,21 @@
+<!-- <div class="d-flex flex-row bd-highlight mb-3" style="margin: 30px;"> -->
+
+<div class="container" style="margin-top: 20px;">
+    <div class="row">
+        <!-- <div class="col-md-3">
+            <a routerLink="addImage">
+                <div fxLayoutAlign="center center" style="width: 300px; height: 300px; border: 2px dotted black;">
+                    <mat-icon>add_circle</mat-icon>
+                </div>
+            </a>
+        </div> -->
+        <div style="margin-top: 20px;" class="col-lg-3 col-md-4 col-sm-6" *ngFor="let test of allImages">
+            <img title="{{test.description}}" class="img-thumbnail img-fluid image-size"
+                src="data:image/jpg;base64,{{test.image}}" />
+        </div>
+    </div>
+</div>
+<div *ngIf="pageLoading" class="spinner"></div>
+<a routerLink="addImage">
+    <mat-icon id="fixedbutton">add_a_photo</mat-icon>
+</a>

@@ -1,0 +1,54 @@
+<div fxLayoutAlign="center center" fxFlexFill class="div-toolbar">
+    <mat-card fxFlex="50">
+        <mat-toolbar  color="primary">
+            <span>Register</span>
+          </mat-toolbar>
+        <form fxLayoutAlign="stretch" fxLayout="column" class="login-form" [formGroup]="registerFormGroup" (ngSubmit)="registerProcess()">
+
+          <label class="form-label" for="customFile">Profile Picture</label>
+          <input type="file" class="form-control" id="customFile" (change)="onFileSelect($event)"/>
+
+            <mat-form-field>
+              <mat-label>Username</mat-label>
+              <input matInput placeholder="Username" formControlName="userName">
+            </mat-form-field>
+          
+            <mat-form-field>
+                <mat-label>Password</mat-label>
+                <input matInput type="text" placeholder="Password" formControlName="password">
+            </mat-form-field>
+
+            <mat-form-field>
+                <mat-label>Confirm Password</mat-label>
+                <input matInput type="password" placeholder="Confirm Password" formControlName="confirmpassword">
+            </mat-form-field>
+
+            <mat-form-field>
+                <mat-label>First Name</mat-label>
+                <input matInput placeholder="First Name" formControlName="firstName">
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Last Name</mat-label>
+                <input matInput placeholder="Last Name" formControlName="lastName">
+              </mat-form-field>
+
+              <mat-radio-group style="margin:20px 0px" aria-label="Select an option" formControlName="gender">
+                <mat-radio-button value="1">Male</mat-radio-button>
+                <mat-radio-button style="margin-left:40px" value="2">Female</mat-radio-button>
+              </mat-radio-group>
+
+              <mat-form-field  style="width: 30%;">
+                <mat-label>Date Of Birth</mat-label>
+                <input matInput [matDatepicker]="picker" formControlName="dateOfBirth">
+                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+              </mat-form-field>   
+              
+
+            <button style="margin:20px 0px;" mat-raised-button type="submit">Register</button>
+
+            <h3 class="errorMsg" *ngIf="errorMsg!='null'">{{errorMsg}}</h3>
+          </form>
+    </mat-card>
+</div>

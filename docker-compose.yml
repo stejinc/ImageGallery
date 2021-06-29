@@ -1,0 +1,36 @@
+version: '3'
+services: 
+    nginx:
+        image: stejinc/customnginx:v1
+        ports:
+            - "80:80"
+    ms-sql-server:
+        image: stejinc/customsqldb:v1
+        user: root
+        environment: 
+            ACCEPT_EULA: "Y"
+            SA_PASSWORD: "Test@123"
+            MSSQL_PID: Express
+        ports:
+            - "1433:1433"
+        volumes:
+            - sqldata:/var/opt/mssql/data
+    imagegalleryapi:
+        build: 
+            dockerfile: Dockerfile
+            context: ./backend
+        image: stejinc/imagegalleryapi:v1
+        container_name: imagegalleryapi
+        ports: 
+            - "8080:80"
+    imagegalleryui:
+        build: 
+            dockerfile: Dockerfile
+            context: ./client
+        image: stejinc/imagegalleryui:v1
+        container_name: imagegalleryui
+        ports:
+            - "8060:80"
+volumes:
+    sqldata:
+        

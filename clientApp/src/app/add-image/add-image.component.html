@@ -1,0 +1,24 @@
+<div fxLayoutAlign="center center" fxFlexFill class="div-toolbar">
+    <mat-card fxFlex="40">
+        <mat-toolbar  color="primary">
+            <span>Add Image</span>
+          </mat-toolbar>
+        <form fxLayoutAlign="stretch" fxLayout="column" class="login-form" [formGroup]="imageFormGroup" (ngSubmit)="uploadImage()">
+
+          <input style="margin:20px 0px;" type="file" class="form-control" id="customFile" (change)="onFileSelect($event)"/>
+
+            <mat-form-field>
+                <mat-label>Description</mat-label>
+                <input type="" matInput placeholder="Description" formControlName="description">
+            </mat-form-field>
+              
+
+            <button style="margin:20px 0px;" mat-raised-button type="submit">Upload</button>
+            <a routerLink="/home" mat-raised-button type="button">Cancel</a>
+
+            <h3 class="errorMsg" *ngIf="errorMsg!='null'">{{errorMsg}}</h3>
+          </form>
+    </mat-card>
+</div>
+
+<div *ngIf="pageLoading" class="spinner"></div>
