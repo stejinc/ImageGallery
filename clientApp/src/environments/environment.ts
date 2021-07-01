@@ -5,8 +5,7 @@
 export const environment = {
   production: false
 };
-
-export const baseUrl = "http://localhost:8080/";
+export const baseUrl = "http://35.200.156.69/imagegalleryapi/";
 
 /*
  * For easier debugging in development mode, you can import the following file

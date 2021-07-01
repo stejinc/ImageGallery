@@ -23,7 +23,7 @@ namespace PhotoApp.Controllers
         [HttpGet("home/api/isLoggedIn")]
         public IActionResult isLoggedIn()
         {
-            return Ok();
+            return Ok("Server is reachable");
         }
 
         [HttpPost("home/api/upload"), DisableRequestSizeLimit]
