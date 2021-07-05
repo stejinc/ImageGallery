@@ -6,9 +6,12 @@ using System.Threading.Tasks;
 
 namespace PhotoApp.Models
 {
-    public class UserImages
+    public class ProfileImage
     {
         public IFormFile image { get; set; }
+    }
+    public class UserImages : ProfileImage
+    {
         public string description { get; set; }
     }
 }

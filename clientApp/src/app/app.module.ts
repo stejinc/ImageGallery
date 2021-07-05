@@ -26,6 +26,7 @@ import { AuthServiceService } from './auth-service.service';
 import { RegisterComponent } from './register/register.component';
 import { AddImageComponent } from './add-image/add-image.component';
 import { SideBarUserDetailsComponent } from './home/side-bar-user-details/side-bar-user-details.component';
+import { SettingsComponent } from './settings/settings.component';
 
 @NgModule({
   declarations: [
@@ -34,7 +35,8 @@ import { SideBarUserDetailsComponent } from './home/side-bar-user-details/side-b
     HomeComponent,
     RegisterComponent,
     AddImageComponent,
-    SideBarUserDetailsComponent
+    SideBarUserDetailsComponent,
+    SettingsComponent
   ],
   imports: [
     BrowserModule,
