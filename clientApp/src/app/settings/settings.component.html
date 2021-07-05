@@ -1,0 +1,40 @@
+<div class="container" style="border: 2px solid white;">
+    <div style="padding-bottom: 20%;">
+        <div style="margin: 50px;" class="row justify-content-center">
+            <img class="profile-pic" src="data:image/jpg;base64,{{UsersInfo.profilePic}}">
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-2 col-sm-12">
+                <button *ngIf="!updatePic" (click)="UpdateProfilePic()" style="width: 200px;"
+                    class="btn btn-primary">Change Profile Picture</button>
+                <div *ngIf="updatePic">
+                    <input style="margin:20px 0px;" type="file" class="form-control" (change)="onFileSelect($event)" />
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-sm-center">
+            <div class="col-lg-2 col-md-2">
+                <button *ngIf="!updatePassword" (click)="UpdateProfilePassword()" style="margin-top: 5px; width: 200px;"
+                    class="btn btn-primary">Change
+                    Password</button>
+                <div *ngIf="updatePassword">
+                    <form fxLayoutAlign="stretch" fxLayout="column" class="login-form" [formGroup]="changePassword"
+                        (ngSubmit)="updateNewPassword()">
+
+                        <label>Old Password</label>
+                        <input type="text" placeholder="Old Password" formControlName="oldpassword">
+
+                        <label>New Password</label>
+                        <input type="text" placeholder="New Password">
+
+                        <label>Confirm new Password</label>
+                        <input type="text" placeholder="Confirm New Password" formControlName="newpassword">
+
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </form>
+                </div>
+                <h3 class="errorMsg" *ngIf="errorMsg!='null'">{{errorMsg}}</h3>
+            </div>
+        </div>
+    </div>
+</div>

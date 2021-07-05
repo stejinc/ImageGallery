@@ -1,9 +1,11 @@
 ﻿using ImageGalleryDbHelper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using PhotoApp.Models;
+using ImageGalleryDbHelper.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -28,7 +30,7 @@ namespace PhotoApp.Controllers
         }
 
         [HttpPost("accounts/api/register"), DisableRequestSizeLimit]
-        public IActionResult Register([FromForm]UserDetails userDetails)
+        public IActionResult Register([FromForm]UserDetailsWithPassword userDetails)
         {
             try
             {
@@ -64,14 +66,119 @@ namespace PhotoApp.Controllers
         {
             IActionResult response = Unauthorized();
             SqlImageDbHelper dbHelper = new SqlImageDbHelper();
-            Task<bool> loginStatus = dbHelper.LoginUser(loginDetails.userName, loginDetails.password);
-            if (loginStatus.Result)
+            bool loginStatus = dbHelper.LoginUser(loginDetails.userName, loginDetails.password);
+            if (loginStatus)
             {
                 string tokenString = GenerateJSONWebToken(loginDetails.userName);
                 response = Ok(new { token = tokenString });
             }
 
             return response;
+        }
+
+        [Authorize]
+        [HttpGet("accounts/api/getUserDetails")]
+        public IActionResult UserDetails()
+        {
+            string usernameClaim = null;
+            try
+            {
+                var currentUser = HttpContext.User;
+                if (currentUser.HasClaim(x => x.Type == "UserName"))
+                {
+                    usernameClaim = currentUser.Claims.FirstOrDefault(x => x.Type == "UserName").Value;
+                    if (usernameClaim == null)
+                        return StatusCode(401);
+
+                    SqlImageDbHelper dbHelper = new SqlImageDbHelper();
+                    UserDetailsDb result = dbHelper.getUserDetails(usernameClaim);
+                    return Ok(result);
+                }
+            }catch(Exception ex)
+            {
+                Console.WriteLine("Exception :" +  ex.Message);
+            }
+
+            return BadRequest("Error processing the request");
+        }
+
+        [Authorize]
+        [HttpPost("accounts/api/UpdateProfilePic")]
+        public IActionResult UpdateProfilePic([FromForm] ProfileImage profileImage)
+        {
+            string usernameClaim = null;
+            try
+            {
+                var currentUser = HttpContext.User;
+                if (currentUser.HasClaim(x => x.Type == "UserName"))
+                {
+                    usernameClaim = currentUser.Claims.FirstOrDefault(x => x.Type == "UserName").Value;
+                    if (usernameClaim == null)
+                        return StatusCode(401);
+
+                    var file = profileImage.image;
+                    byte[] fileBytes = null;
+
+                    if (file.Length > 0)
+                    {
+                        using (var ms = new MemoryStream())
+                        {
+                            file.CopyTo(ms);
+                            fileBytes = ms.ToArray();
+                        }
+                        SqlImageDbHelper dbHelper = new SqlImageDbHelper();
+                        bool result = dbHelper.UpdateProfilePic(usernameClaim, fileBytes);
+                        if(result)
+                            return Ok(result);
+                        return BadRequest("Error updating profile image");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception :" + ex.Message);
+            }
+
+            return BadRequest("Error updating profile image");
+        }
+
+        [Authorize]
+        [HttpPost("accounts/api/UpdatePassword")]
+        public IActionResult UpdatePassword([FromBody] Passwords password)
+        {
+            string usernameClaim = null;
+            IActionResult response = Unauthorized();
+            try
+            {
+                var currentUser = HttpContext.User;
+                if (currentUser.HasClaim(x => x.Type == "UserName"))
+                {
+                    usernameClaim = currentUser.Claims.FirstOrDefault(x => x.Type == "UserName").Value;
+                    if (usernameClaim == null)
+                        return StatusCode(401);
+
+                    SqlImageDbHelper dbHelper = new SqlImageDbHelper();
+                    bool loginStatus = dbHelper.LoginUser(usernameClaim, password.oldpassword);
+                    if (loginStatus)
+                    {
+                        Console.WriteLine("Old password validated. Updating new password");
+                        bool status = dbHelper.UpdatePassword(usernameClaim, password.newpassword);
+                        if (status)
+                        {
+                            string tokenString = GenerateJSONWebToken(usernameClaim);
+                            return Ok(new { token = tokenString });
+                        }
+                    }
+                    Console.WriteLine("Unable to login with old password");
+                    return BadRequest("Please check the old password. Authentication failed with old password");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception :" + ex.Message);
+            }
+
+            return BadRequest("Error updating profile image");
         }
 
         private string GenerateJSONWebToken(string userName)

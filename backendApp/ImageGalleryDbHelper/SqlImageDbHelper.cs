@@ -18,7 +18,9 @@ namespace ImageGalleryDbHelper
         {
             try
             {
-                conn = new SqlConnection("data source=ms-sql-server; database = ImageGallery; User ID = SA; Password=Test@123; Trusted_Connection=false; MultipleActiveResultSets=true;");
+                //conn = new SqlConnection("data source=ms-sql-server; database = ImageGallery; User ID = SA; Password=Test@123; Trusted_Connection=false; MultipleActiveResultSets=true;");
+                conn = new SqlConnection("data source=(localdb)\\MSSQLLocalDB; database = ImageGallery;  Trusted_Connection=true; MultipleActiveResultSets=true;");
+
             }
             catch (Exception ex)
             {
@@ -52,20 +54,22 @@ namespace ImageGalleryDbHelper
                         //     SqlDbType.VarBinary, thumbnail.Length).Value = thumbnail;
                         conn.Open();
                         insertedCount = command.ExecuteNonQuery();
-                        Console.WriteLine("Inserted count:"+ insertedCount);
+                        Console.WriteLine("Inserted count:" + insertedCount);
                     }
                     if (insertedCount > 0)
                         return true;
                     else
                         return false;
-                }catch(Exception ex)
+                }
+                catch (Exception ex)
                 {
                     Console.WriteLine("Exception occured while pushing data to sql server");
                     Console.WriteLine("Error exception: " + ex.Message);
                     return false;
                 }
             }
-            else{
+            else
+            {
                 Console.WriteLine("Store image: Sql Connection issue");
                 return false;
             }
@@ -73,7 +77,7 @@ namespace ImageGalleryDbHelper
 
         }
 
-        public async Task<bool> LoginUser(string userName, string password)
+        public bool LoginUser(string userName, string password)
         {
             if (getConnectionToSql())
             {
@@ -94,7 +98,7 @@ namespace ImageGalleryDbHelper
                         if (command.ExecuteNonQuery() == 0)
                             return false;
 
-                        byte[] passwordFromDb =  (byte[]) await command.ExecuteScalarAsync();
+                        byte[] passwordFromDb = (byte[]) command.ExecuteScalar();
 
                         if (passwordFromDb == null)
                         {
@@ -121,6 +125,109 @@ namespace ImageGalleryDbHelper
             }
             else
                 return false;
+        }
+
+        public bool UpdateProfilePic(string usernameClaim, byte[] fileBytes)
+        {
+            if (getConnectionToSql())
+            {
+                try
+                {
+                    using (conn)
+                    {
+                        SqlCommand command = new SqlCommand("Update usersdetails set profilepic = @profilevalue where username = @username",conn);
+                        command.Parameters.Add("@username", SqlDbType.NVarChar, 50).Value = usernameClaim;
+                        command.Parameters.Add("@profilevalue", SqlDbType.VarBinary, fileBytes.Length).Value = fileBytes;
+
+                        conn.Open();
+                        int inserted = (int)command.ExecuteNonQuery();
+
+                        if(inserted == 1)
+                        {
+                            Console.WriteLine("Updated profile pic of user " + usernameClaim);
+                            return true;
+                        }
+                        Console.WriteLine("Error updating profile pic of user: " + usernameClaim);
+                        Console.WriteLine("Number of rows affected after update: " + inserted);
+                        return false;
+                    }
+                }catch(Exception ex)
+                {
+                    Console.WriteLine("Exception occured while updating profile pic: " + usernameClaim);
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        public bool UpdatePassword(string username, string newpassword)
+        {
+            if (getConnectionToSql())
+            {
+                try
+                {
+                    using (conn)
+                    {
+                        SqlCommand cmd = new SqlCommand("Update usersdetails set password = @password where username = @username", conn);
+                        byte[] hashPassword = getHashedPassword(newpassword);
+                        cmd.Parameters.Add("@password", SqlDbType.VarBinary, hashPassword.Length).Value = hashPassword;
+                        cmd.Parameters.Add("@username", SqlDbType.NVarChar, 50).Value = username;
+
+                        conn.Open();
+                        int updated = cmd.ExecuteNonQuery();
+                        if(updated == 1)
+                        {
+                            Console.WriteLine("Password updated succesfully");
+                            return true;
+                        }
+                        Console.WriteLine("Error while updating password");
+                        return false;
+                    }
+                }catch(Exception ex)
+                {
+                    Console.WriteLine("Exception occured while updating password");
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        public UserDetailsDb getUserDetails(string usernameClaim)
+        {
+            if (getConnectionToSql()){
+                try
+                {
+                    using (conn)
+                    {
+                        SqlCommand command = new SqlCommand("Select username, firstname, lastname, dateofbirth, profilepic, gender from usersdetails where username = @username", conn);
+
+                        command.Parameters.Add("@username", SqlDbType.NVarChar, 50).Value = usernameClaim;
+
+                        conn.Open();
+                        SqlDataReader reader = command.ExecuteReader();
+
+                        if (reader.Read())
+                        {
+                            byte[] imageData = (byte[])reader["profilepic"];
+                            return new UserDetailsDb()
+                            {
+                                userName = (string)reader["username"],
+                                lastName = (string?)reader["lastname"],
+                                profilePic = Convert.ToBase64String(imageData, 0, imageData.Length),
+                                gender = (int)reader["gender"],
+                                dateOfBirth = reader["dateofbirth"].ToString()
+                            };
+                        }
+                    }
+                }catch(Exception ex)
+                {
+                    Console.WriteLine("Exception occured while fetching userdetails from db");
+                    Console.WriteLine("Error msg :", ex.Message);
+                    return null;
+                }
+            }
+            Console.WriteLine("Error connecting to db while fetching userdetails");
+            return null;
         }
 
         public async Task<ImageContent> RetrieveImage(string userName, long imageId)
@@ -253,7 +360,7 @@ namespace ImageGalleryDbHelper
                 try
                 {
                     byte[] passwordHash = getHashedPassword(password);
-                    
+
                     if (passwordHash == null)
                         return false;
 
@@ -269,7 +376,7 @@ namespace ImageGalleryDbHelper
                         command.Parameters.Add("@lastname", SqlDbType.NVarChar, 20).Value = (lastName == null ? DBNull.Value : lastName);
                         command.Parameters.Add("@gender", SqlDbType.Int).Value = gender;
                         command.Parameters.Add("@dateOfBirth", SqlDbType.Date, 10).Value = dateOfBirth;
-                        command.Parameters.Add("@profilepic", SqlDbType.VarBinary, image == null ? 0: image.Length).Value = (image == null ? DBNull.Value : image);
+                        command.Parameters.Add("@profilepic", SqlDbType.VarBinary, image == null ? 0 : image.Length).Value = (image == null ? DBNull.Value : image);
 
                         conn.Open();
                         if (command.ExecuteNonQuery() > 0)
@@ -277,7 +384,8 @@ namespace ImageGalleryDbHelper
 
                         return false;
                     }
-                }catch(Exception ex)
+                }
+                catch (Exception ex)
                 {
                     Console.WriteLine("Error occured while creating new user");
                     Console.WriteLine("Exception message : " + ex.Message);

@@ -10,7 +10,10 @@
     <div class="topnav-right">
       <a routerLink="/login" routerLinkActive="active" *ngIf="!authService.isLoggedIn()">Login</a>
       <a routerLink="/register" *ngIf="!authService.isLoggedIn()" routerLinkActive="active">Register</a>
-      <a routerLink="/login" *ngIf="authService.isLoggedIn()" (click)="authService.Logout()" routerLinkActive="active">Logout</a>
+      <a routerLink="/settings" *ngIf="authService.isLoggedIn()" routerLinkActive="active">Settings</a>
+      <a routerLink="/login" *ngIf="authService.isLoggedIn()" (click)="authService.Logout()" routerLinkActive="active"><span class="material-icons-outlined">
+        logout
+        </span></a>
     </div>
   </div>
   <router-outlet></router-outlet>
