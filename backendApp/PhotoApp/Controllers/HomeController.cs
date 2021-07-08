@@ -1,4 +1,5 @@
 ﻿using ImageGalleryDbHelper;
+using ImageGalleryDbHelper.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -58,13 +59,8 @@ namespace PhotoApp.Controllers
                         // }
 
                         SqlImageDbHelper dbHelper = new SqlImageDbHelper();
-                        
-
-                        bool status = dbHelper.StoreUserImage(usernameClaim, fileBytes, null, imageDetails.description);
-                        Console.WriteLine("Status after calling store image :" + status);
-                        if (status)
-                            return Ok();
-                        return new StatusCodeResult(500);
+                        ErrorObjects uploadStatus = dbHelper.StoreUserImage(usernameClaim, fileBytes, null, imageDetails.description);
+                        return Ok(new { status = uploadStatus.status, message = uploadStatus.message });
                     }
                     else
                     {
@@ -92,16 +88,13 @@ namespace PhotoApp.Controllers
             {
                 userName = currentUser.Claims.FirstOrDefault(x => x.Type == "UserName").Value;
                 if (userName == null)
-                    return StatusCode(401);
-
-                if (userName == null)
-                    return BadRequest("username null");
+                    return BadRequest(new { status = false, message = "Invalid username" });
 
                 var image = dbHelper.RetrieveImage(userName, imageid);
                 if (image.Result == null)
-                    return BadRequest();
+                    return BadRequest(new { status = false, message = "Failed to retrieve image" });
 
-                return Ok(image.Result);
+                return Ok(new { status = true, data = image.Result , message = "Success"});
             }
 
             return StatusCode(401);
@@ -119,16 +112,13 @@ namespace PhotoApp.Controllers
             {
                 userName = currentUser.Claims.FirstOrDefault(x => x.Type == "UserName").Value;
                 if (userName == null)
-                    return StatusCode(401);
-
-                if (userName == null)
-                    return BadRequest("username null");
+                    return BadRequest(new { status = false, message = "Invalid username" });
                 var image = dbHelper.RetrieveAllImages(userName);
 
                 if (image.Result == null)
-                    return BadRequest();
+                    return BadRequest(new { status = false, message = "Failed to retrieve images" });
 
-                return Ok(image.Result);
+                return Ok(new { status = true, data = image.Result, message = "Success" });
             }
 
             return StatusCode(401);
@@ -146,19 +136,16 @@ namespace PhotoApp.Controllers
             {
                 userName = currentUser.Claims.FirstOrDefault(x => x.Type == "UserName").Value;
                 if (userName == null)
-                    return StatusCode(401);
+                    return BadRequest(new { status = false, message = "Invalid username" });
+                ErrorObjects deletionStatus = dbHelper.DeleteImage(imageid);
 
-                if (userName == null)
-                    return BadRequest("username null");
-                bool deletionStatus = dbHelper.DeleteImage(imageid);
-
-                if (!deletionStatus)
-                    return BadRequest();
-
-                return Ok();
+                if (deletionStatus.status)
+                    return Ok(new { status = true, message = deletionStatus.message });
+                
+                return BadRequest(new { status = true, message = deletionStatus.message });
             }
 
-            return StatusCode(401);
+            return BadRequest(new { status = false, message = "Operation failed" });
 
         }
     }

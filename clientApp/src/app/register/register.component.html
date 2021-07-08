@@ -9,22 +9,22 @@
           <input type="file" class="form-control" id="customFile" (change)="onFileSelect($event)"/>
 
             <mat-form-field>
-              <mat-label>Username</mat-label>
+              <mat-label>Username<sup style="color: red;">*</sup></mat-label>
               <input matInput placeholder="Username" formControlName="userName">
             </mat-form-field>
           
             <mat-form-field>
-                <mat-label>Password</mat-label>
+                <mat-label>Password<sup style="color: red;">*</sup></mat-label>
                 <input matInput type="text" placeholder="Password" formControlName="password">
             </mat-form-field>
 
             <mat-form-field>
-                <mat-label>Confirm Password</mat-label>
+                <mat-label>Confirm Password<sup style="color: red;">*</sup></mat-label>
                 <input matInput type="password" placeholder="Confirm Password" formControlName="confirmpassword">
             </mat-form-field>
 
             <mat-form-field>
-                <mat-label>First Name</mat-label>
+                <mat-label>First Name<sup style="color: red;">*</sup></mat-label>
                 <input matInput placeholder="First Name" formControlName="firstName">
               </mat-form-field>
 
@@ -33,13 +33,13 @@
                 <input matInput placeholder="Last Name" formControlName="lastName">
               </mat-form-field>
 
-              <mat-radio-group style="margin:20px 0px" aria-label="Select an option" formControlName="gender">
+              <mat-radio-group style="margin:20px 0px" required aria-label="Select an option" formControlName="gender">
                 <mat-radio-button value="1">Male</mat-radio-button>
                 <mat-radio-button style="margin-left:40px" value="2">Female</mat-radio-button>
               </mat-radio-group>
 
               <mat-form-field  style="width: 30%;">
-                <mat-label>Date Of Birth</mat-label>
+                <mat-label>Date Of Birth<sup style="color: red;">*</sup></mat-label>
                 <input matInput [matDatepicker]="picker" formControlName="dateOfBirth">
                 <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                 <mat-datepicker #picker></mat-datepicker>
@@ -52,3 +52,5 @@
           </form>
     </mat-card>
 </div>
+
+<div *ngIf="pageLoading" class="spinner"></div>

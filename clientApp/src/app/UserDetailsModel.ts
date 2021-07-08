@@ -1,8 +1,8 @@
 export class UserDetails{
-    username : string | undefined;
+    userName : string | undefined;
     profilePic? : any;
-    firstname : string | undefined;
-    lastname? : string;
-    dateofbirth : Date | undefined;
+    firstName : string | undefined;
+    lastName? : string;
+    dateOfBirth : Date | undefined;
     gender : string | undefined;
 }

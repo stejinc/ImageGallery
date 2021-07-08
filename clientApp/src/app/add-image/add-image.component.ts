@@ -28,15 +28,23 @@ export class AddImageComponent implements OnInit {
       formData.set('image', formBody.image);
       formData.set('description', formBody.description);
       
-      this.authService.addImage(formData).subscribe(result => {
-        console.log(result);
-        this.pageLoading = false;
-        this.routerService.navigate(['home']);
+      this.authService.addImage(formData).subscribe(response => {
+        if(response != null && response.status){
+          console.log(response);
+          this.imageFormGroup.reset();
+          this.pageLoading = false;
+          this.errorMsg = response.message ?? "Upload successful";
+        }
+        else{
+          this.pageLoading = false;
+          this.errorMsg = response.message ?? "Upload failed";
+        }
+
       },
       error=>{
         this.pageLoading = false;
         this.errorMsg = "Upload failed";
-      })
+      });
     }
   }
 
@@ -48,6 +56,7 @@ export class AddImageComponent implements OnInit {
   }
 
   onFileSelect(event : Event){
+    this.errorMsg = 'null';
     const target = event.target as HTMLInputElement;
     const files = target.files as FileList;
     if(files.length > 0)

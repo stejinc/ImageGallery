@@ -11,83 +11,103 @@ import { UserDetails } from '../UserDetailsModel';
   styleUrls: ['./settings.component.css']
 })
 export class SettingsComponent implements OnInit {
-  updatePic : boolean = false;
-  updatePassword : boolean = false;
-  UsersInfo : UserDetails;
-  changePassword : FormGroup;
-  errorMsg : string = 'null';
-  constructor(private authService : AuthServiceService , private sanitizer : DomSanitizer,
-    private router : Router) {   }
- 
-  UpdateProfilePassword(){
+  updatePic: boolean;
+  updatePassword: boolean;
+  UsersInfo: UserDetails;
+  changePassword: FormGroup;
+  errorMsg: string = 'null';
+  constructor(private authService: AuthServiceService, private sanitizer: DomSanitizer,
+    private router: Router) { }
+
+  UpdateProfilePassword() {
     this.updatePic = false;
     this.updatePassword = true;
   }
-  
-  UpdateProfilePic(){
+
+  UpdateProfilePic() {
     this.updatePic = true;
     this.updatePassword = false;
   }
-  
-  loadDetails(){
-    this.authService.getUserInfo().subscribe(result =>{
-      if(result != null){
-        this.UsersInfo = result;
+
+  loadDetails() {
+    this.authService.getUserInfo().subscribe(response => {
+      if (response != null && response.status) {
+        console.log(response);
+        this.UsersInfo = response.data;
+        this.UsersInfo.profilePic = this.UsersInfo.profilePic == null ? "../../assets/Images/userimage.jpg" : "data:image/jpg;base64," + this.UsersInfo.profilePic;
         console.log(this.UsersInfo);
+      }
+      else {
+        this.errorMsg = response.message ?? "Failed to retrieve data";
       }
     })
   }
 
   ngOnInit(): void {
+    // this.UsersInfo.profilePic = "../../assets/Images/userimage.jpg";
+    this.UsersInfo = new UserDetails();
+    this.UsersInfo.profilePic = "../../assets/Images/userimage.jpg";
     this.initFormGroup();
     this.loadDetails();
+    this.updatePic = false;
+    this.updatePassword = false;
   }
 
-  initFormGroup(){
+  initFormGroup() {
     this.changePassword = new FormGroup({
-      oldpassword: new FormControl('',[Validators.required]),
-      newpassword: new FormControl('',[Validators.required])
+      oldpassword: new FormControl('', [Validators.required]),
+      newpassword: new FormControl('', [Validators.required])
     });
   }
 
-  updateNewPassword(){
-    
-    if(this.changePassword.valid){
+  updateNewPassword() {
+    this.errorMsg = 'null';
+    if (this.changePassword.valid) {
       this.authService.updatePassword(this.changePassword.value).subscribe(result => {
-        if(result.token){
+        if (result != null && result.status) {
           console.log("Password updated succesfully");
-          localStorage.removeItem('token');
-          localStorage.setItem('token', result.token);
-          this.updatePassword = false;
           this.errorMsg = "Password Updated";
-          console.log(this.errorMsg);
+          if(result.token){
+            localStorage.removeItem('token');
+            localStorage.setItem('token', result.token);
+            this.updatePassword = false;
+            console.log(this.errorMsg);
+          }else
+            this.errorMsg = result.message ?? "Operation failed";
         }
-        else if(!result.token)
-        {
-          this.errorMsg = "Failed";
-        }
+        else
+          this.errorMsg = result.message ?? "Operation failed";
       },
-      error => {this.errorMsg = "Failed";})
+        error => { 
+          this.errorMsg = error.error.message ?? "Operation failed";
+         }
+      )
     }
   }
 
-  onFileSelect(event : Event){
+  onFileSelect(event: Event) {
     const target = event.target as HTMLInputElement;
     const files = target.files as FileList;
-    if(files.length > 0)
-    {  //this.imageFormGroup.get('image')?.setValue(files[0]);
+    if (files.length > 0) {  //this.imageFormGroup.get('image')?.setValue(files[0]);
       const formData = new FormData();
-      formData.set('image',files[0]);
-      this.authService.updateProfilePic(formData).subscribe(() => {
-        this.updatePic = false;
-        this.loadDetails();
+      formData.set('image', files[0]);
+      this.authService.updateProfilePic(formData).subscribe((response) => {
+        if (response != null && response.status) {
+          this.errorMsg = "Profile image updated";
+          this.updatePic = false;
+          this.loadDetails();
+        }
+        else {
+          this.errorMsg = "Operation failed";
+        }
       },
-      () => {console.log("Error updating profile pic")})
+        () => { console.log("Error updating profile pic");
+        this.errorMsg = "Error updating profile pic";
+      })
     }
-    else
-    {
+    else {
       //this.errorMsg = "Invalid file selected";
-      console.log("Error uploading profile pic");
+      console.log("Error updating profile pic");
     }
   }
 

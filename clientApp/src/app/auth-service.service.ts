@@ -19,12 +19,12 @@ export class AuthServiceService {
     
   }
 
-    updateProfilePic(formData: FormData) {
+    updateProfilePic(formData: FormData) : Observable<any> {
       return this.http.post(`${baseUrl}accounts/api/UpdateProfilePic`, formData);
     }
 
-    getUserInfo() : Observable<UserDetails>{
-      return this.http.get<UserDetails>(`${baseUrl}accounts/api/getUserDetails`);
+    getUserInfo() : Observable<any>{
+      return this.http.get<any>(`${baseUrl}accounts/api/getUserDetails`);
     }
    
     login(data:any):Observable<any>{
@@ -35,8 +35,8 @@ export class AuthServiceService {
       return this.http.post(`${baseUrl}accounts/api/register`, data);
     }
 
-    getAllImages():Observable<IImageContent[]>{
-      return this.http.get<IImageContent[]>(`${baseUrl}home/api/image`);
+    getAllImages():Observable<any>{
+      return this.http.get<any>(`${baseUrl}home/api/image`);
     }
 
     addImage(data:FormData):Observable<any>{

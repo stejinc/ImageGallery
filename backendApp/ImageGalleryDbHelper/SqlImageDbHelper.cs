@@ -30,8 +30,9 @@ namespace ImageGalleryDbHelper
             return true;
         }
 
-        public bool StoreUserImage(string userName, byte[] image, byte[] thumbnail, string description)
+        public ErrorObjects StoreUserImage(string userName, byte[] image, byte[] thumbnail, string description)
         {
+            ErrorObjects err = new ErrorObjects();
             int insertedCount = 0;
             if (getConnectionToSql())
             {
@@ -57,28 +58,34 @@ namespace ImageGalleryDbHelper
                         Console.WriteLine("Inserted count:" + insertedCount);
                     }
                     if (insertedCount > 0)
-                        return true;
+                    {
+                        err.status = true;
+                        err.message = "Image uploaded successfully";
+                        Console.WriteLine("Image uploaded succesffully");
+                        return err;
+                    }
                     else
-                        return false;
+                    {
+                        err.message = "Image upload failed";
+                        return err;
+                    }
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine("Exception occured while pushing data to sql server");
                     Console.WriteLine("Error exception: " + ex.Message);
-                    return false;
                 }
             }
-            else
-            {
-                Console.WriteLine("Store image: Sql Connection issue");
-                return false;
-            }
+            return err;
 
 
         }
 
-        public bool LoginUser(string userName, string password)
+        public ErrorObjects LoginUser(string userName, string password)
         {
+            ErrorObjects err = new ErrorObjects();
+            err.status = false;
+            err.message = "Internal server error";
             if (getConnectionToSql())
             {
                 try
@@ -86,7 +93,7 @@ namespace ImageGalleryDbHelper
                     byte[] passwordHash = getHashedPassword(password);
 
                     if (passwordHash == null)
-                        return false;
+                        return err;
 
                     using (conn)
                     {
@@ -96,39 +103,53 @@ namespace ImageGalleryDbHelper
                         conn.Open();
 
                         if (command.ExecuteNonQuery() == 0)
-                            return false;
+                        {
+                            err.message = "User not registered";
+                            return err;
+                        }
 
-                        byte[] passwordFromDb = (byte[]) command.ExecuteScalar();
+                        byte[] passwordFromDb = (byte[])command.ExecuteScalar();
 
                         if (passwordFromDb == null)
                         {
-                            Console.WriteLine("No users available with username : " + userName);
-                            return false;
+                            err.message = "User not registered";
+                            return err;
                         }
 
                         if (passwordHash.SequenceEqual(passwordFromDb))
-                            return true;
+                        {
+                            err.status = true;
+                            err.message = "Login successful";
+                            return err;
+                        }
                         else
                         {
-                            Console.WriteLine("Incorrect password");
-                            return false;
+                            err.message = "Incorrect username or password";
+                            return err;
                         }
                     }
 
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Login validation failed");
+                    err.message = "Internal server error";
                     Console.WriteLine("Error exception: " + ex.Message);
-                    return false;
+                    return err;
                 }
             }
             else
-                return false;
+            {
+                err.message = "Internal issue. Please try after sometime";
+                Console.WriteLine("Sql connection error");
+                return err;
+            }
         }
 
-        public bool UpdateProfilePic(string usernameClaim, byte[] fileBytes)
+        public ErrorObjects UpdateProfilePic(string usernameClaim, byte[] fileBytes)
         {
+            ErrorObjects err = new ErrorObjects();
+            err.status = false;
+            err.message = "Internal server error";
             if (getConnectionToSql())
             {
                 try
@@ -145,23 +166,28 @@ namespace ImageGalleryDbHelper
                         if(inserted == 1)
                         {
                             Console.WriteLine("Updated profile pic of user " + usernameClaim);
-                            return true;
+                            err.status = true;
+                            err.message = "Profile pic updated successfully";
+                            return err;
                         }
                         Console.WriteLine("Error updating profile pic of user: " + usernameClaim);
                         Console.WriteLine("Number of rows affected after update: " + inserted);
-                        return false;
+                        err.message = "Profile image updation failed";
+                        return err;
                     }
                 }catch(Exception ex)
                 {
                     Console.WriteLine("Exception occured while updating profile pic: " + usernameClaim);
-                    return false;
                 }
+                return err;
             }
-            return false;
+            err.message = "Connection to database failed";
+            return err;
         }
 
-        public bool UpdatePassword(string username, string newpassword)
+        public ErrorObjects UpdatePassword(string username, string newpassword)
         {
+            ErrorObjects err = new ErrorObjects();
             if (getConnectionToSql())
             {
                 try
@@ -178,18 +204,23 @@ namespace ImageGalleryDbHelper
                         if(updated == 1)
                         {
                             Console.WriteLine("Password updated succesfully");
-                            return true;
+                            err.status = true;
+                            err.message = "Password updated";
+                            return err;
                         }
                         Console.WriteLine("Error while updating password");
-                        return false;
+                        err.message = "Failed to update password";
+                        return err;
                     }
                 }catch(Exception ex)
                 {
                     Console.WriteLine("Exception occured while updating password");
-                    return false;
                 }
+                err.message = "Failed to update password";
+                return err;
             }
-            return false;
+            err.message = "Connection to db failed";
+            return err;
         }
 
         public UserDetailsDb getUserDetails(string usernameClaim)
@@ -206,14 +237,18 @@ namespace ImageGalleryDbHelper
                         conn.Open();
                         SqlDataReader reader = command.ExecuteReader();
 
+                        if (!reader.HasRows)
+                            return null;
+
                         if (reader.Read())
                         {
-                            byte[] imageData = (byte[])reader["profilepic"];
+                            byte[] imageData = reader["profilepic"] == DBNull.Value ? null : (byte[])reader["profilepic"];
                             return new UserDetailsDb()
                             {
                                 userName = (string)reader["username"],
+                                firstName = (string?)reader["firstName"],
                                 lastName = (string?)reader["lastname"],
-                                profilePic = Convert.ToBase64String(imageData, 0, imageData.Length),
+                                profilePic = imageData == null ? null : Convert.ToBase64String(imageData, 0, imageData.Length),
                                 gender = (int)reader["gender"],
                                 dateOfBirth = reader["dateofbirth"].ToString()
                             };
@@ -275,8 +310,9 @@ namespace ImageGalleryDbHelper
 
         }
 
-        public bool DeleteImage(long imageId)
+        public ErrorObjects DeleteImage(long imageId)
         {
+            ErrorObjects err = new ErrorObjects();
             if (getConnectionToSql())
             {
                 try
@@ -289,10 +325,14 @@ namespace ImageGalleryDbHelper
                         conn.Open();
 
                         int deleteCount = command.ExecuteNonQuery();
-                        if (deleteCount != 1)
-                            return false;
-
-                        return true;
+                        if (deleteCount == 1)
+                        {
+                            err.message = "Image deleted";
+                            err.status = true;
+                            return err;
+                        }
+                        err.message = "Failed to delete image";
+                        return err;
                     }
 
                 }
@@ -300,11 +340,14 @@ namespace ImageGalleryDbHelper
                 {
                     Console.WriteLine("Delete image failed");
                     Console.WriteLine("Error exception: " + ex.Message);
-                    return false;
+                    return err;
                 }
             }
             else
-                return false;
+            {
+                err.message = "Connection to db failed";
+                return err;
+            }
         }
 
         public async Task<List<ImageContent>> RetrieveAllImages(string userName)
@@ -317,7 +360,7 @@ namespace ImageGalleryDbHelper
                     using (conn)
                     {
                         SqlCommand command = new SqlCommand(
-                        "Select imageid, image, description from userimages where username=@username", conn);
+                        "Select imageid, image, description from userimages where username=@username order by imageid desc", conn);
 
                         command.Parameters.Add("@username",
                            SqlDbType.NVarChar, 50).Value = userName;
@@ -349,12 +392,11 @@ namespace ImageGalleryDbHelper
             }
             else
                 return null;
-
-
         }
 
-        public bool CreateUser(string userName, string password, string firstName, string lastName, int gender, string dateOfBirth, byte[] image = null)
+        public ErrorObjects CreateUser(string userName, string password, string firstName, string lastName, int gender, string dateOfBirth, byte[] image = null)
         {
+            ErrorObjects err = new ErrorObjects();
             if (getConnectionToSql())
             {
                 try
@@ -362,7 +404,12 @@ namespace ImageGalleryDbHelper
                     byte[] passwordHash = getHashedPassword(password);
 
                     if (passwordHash == null)
-                        return false;
+                    {
+                        err.status = false;
+                        err.message = $"Failed to generate passwrod hash for user : {userName}";
+                        Console.WriteLine(err.message);
+                        return err;
+                    }
 
                     using (conn)
                     {
@@ -379,29 +426,61 @@ namespace ImageGalleryDbHelper
                         command.Parameters.Add("@profilepic", SqlDbType.VarBinary, image == null ? 0 : image.Length).Value = (image == null ? DBNull.Value : image);
 
                         conn.Open();
-                        if (command.ExecuteNonQuery() > 0)
-                            return true;
-
-                        return false;
+                        if (command.ExecuteNonQuery() == 1)
+                        {
+                            err.status = true;
+                            err.message = $"User {userName} created successfully";
+                            Console.WriteLine(err.message);
+                        }
+                        else
+                        {
+                            err.status = false;
+                            err.message = $"Failed to create user {userName}";
+                            Console.WriteLine(err.message);
+                        }
+                        return err;
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Error occured while creating new user");
+                    if(ex.Message.ToLower().Contains("violation of primary key"))
+                    {
+                        err.status = false;
+                        err.message = $"Username {userName} already taken";
+                        Console.WriteLine(err.message);
+                        return err;
+                    }                    
                     Console.WriteLine("Exception message : " + ex.Message);
-                    return false;
+                    return null;
                 }
             }
             else
-                return false;
+            {
+                err.status = false;
+                err.message = $"Connection failure. Try after sometime";
+                Console.WriteLine(err.message);
+                return err;
+            }
         }
 
         private byte[] getHashedPassword(string password)
         {
+            if(password == null)
+            {
+                Console.WriteLine("Password is null. Cannot proceed.");
+                return null;
+            }
             using (SHA256 hash = SHA256.Create())
             {
-                Encoding enc = Encoding.UTF8;
-                return hash.ComputeHash(Encoding.Default.GetBytes(password));
+                try
+                {
+                    Encoding enc = Encoding.UTF8;
+                    return hash.ComputeHash(Encoding.Default.GetBytes(password));
+                }catch(Exception ex)
+                {
+                    Console.WriteLine("Exception : Error while generating hash for password: " + ex.Message);
+                    return null;
+                }
             }
         }
     }

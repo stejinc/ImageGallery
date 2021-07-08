@@ -16,18 +16,19 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.pageLoading = true;
-    this.authService.getAllImages().subscribe(result => {
-      this.pageLoading = false;
-      if(result != null){
-        this.allImages = result;
-        console.log(this.allImages);
+    this.authService.getAllImages().subscribe(response => {
+      console.log(response.message);
+      if(response != null && response.status)
+      {
+        this.pageLoading = false;
+        this.allImages = response.data;
       }
-      else
+      else{
         this.allImages = [];
+      }
     },
     error => {
       this.pageLoading = false;
-      console.log("Error occoured" + error);
     })
   }
   mouseEnter(){

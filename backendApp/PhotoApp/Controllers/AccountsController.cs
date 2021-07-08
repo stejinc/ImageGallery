@@ -45,18 +45,25 @@ namespace PhotoApp.Controllers
                     }
                 }
                 SqlImageDbHelper dbHelper = new SqlImageDbHelper();
-                bool status = dbHelper.CreateUser(userDetails.userName, userDetails.password, userDetails.firstName,
+                ErrorObjects response = dbHelper.CreateUser(userDetails.userName, userDetails.password, userDetails.firstName,
                     userDetails.lastName, userDetails.gender, userDetails.dateOfBirth, fileBytes);
-                if (status)
+
+                if(response == null)
+                    return new StatusCodeResult(500);
+
+                if (response.status)
                 {
                     string tokenString = GenerateJSONWebToken(userDetails.userName);
-                    return Ok(new { token = tokenString });
+                    return Ok(new { status = response.status, message = response.message,token = tokenString });
                 }
-                return new StatusCodeResult(500);
+                else
+                    return BadRequest(new { status = response.status, message = response.message});
                 
             }
             catch (Exception ex)
             {
+                Console.WriteLine("Exception occured while registering user");
+                Console.WriteLine("Exception message: " + ex);
                 return new StatusCodeResult(500);
             }
         }
@@ -64,16 +71,15 @@ namespace PhotoApp.Controllers
         [HttpPost("accounts/api/login")]
         public IActionResult Login([FromBody]LoginDetails loginDetails)
         {
-            IActionResult response = Unauthorized();
             SqlImageDbHelper dbHelper = new SqlImageDbHelper();
-            bool loginStatus = dbHelper.LoginUser(loginDetails.userName, loginDetails.password);
-            if (loginStatus)
+            ErrorObjects loginStatus = dbHelper.LoginUser(loginDetails.userName, loginDetails.password);
+            if (loginStatus.status)
             {
                 string tokenString = GenerateJSONWebToken(loginDetails.userName);
-                response = Ok(new { token = tokenString });
+                return Ok(new { token = tokenString, status = loginStatus.status, message = loginStatus.message });
             }
 
-            return response;
+            return BadRequest(new { status = loginStatus.status, message = loginStatus.message});
         }
 
         [Authorize]
@@ -88,18 +94,21 @@ namespace PhotoApp.Controllers
                 {
                     usernameClaim = currentUser.Claims.FirstOrDefault(x => x.Type == "UserName").Value;
                     if (usernameClaim == null)
-                        return StatusCode(401);
+                    {
+                        return BadRequest(new { status = false, message = "Invalid user details" });
+                    }
 
                     SqlImageDbHelper dbHelper = new SqlImageDbHelper();
                     UserDetailsDb result = dbHelper.getUserDetails(usernameClaim);
-                    return Ok(result);
+                    if(result != null)
+                        return Ok(new {status = true, message = "Success", data = result });
                 }
             }catch(Exception ex)
             {
                 Console.WriteLine("Exception :" +  ex.Message);
             }
 
-            return BadRequest("Error processing the request");
+            return BadRequest(new { status = false, message = "Failed to retireve user details" });
         }
 
         [Authorize]
@@ -127,10 +136,10 @@ namespace PhotoApp.Controllers
                             fileBytes = ms.ToArray();
                         }
                         SqlImageDbHelper dbHelper = new SqlImageDbHelper();
-                        bool result = dbHelper.UpdateProfilePic(usernameClaim, fileBytes);
-                        if(result)
-                            return Ok(result);
-                        return BadRequest("Error updating profile image");
+                        ErrorObjects updateResponse = dbHelper.UpdateProfilePic(usernameClaim, fileBytes);
+                        if (updateResponse.status)
+                            return Ok(new { status = true , message = updateResponse.message});
+                        return BadRequest(new { status = false, message = "Error updating profile image" }) ;
                     }
                 }
             }
@@ -139,7 +148,7 @@ namespace PhotoApp.Controllers
                 Console.WriteLine("Exception :" + ex.Message);
             }
 
-            return BadRequest("Error updating profile image");
+            return BadRequest(new { status = false, message = "Error updating profile image" });
         }
 
         [Authorize]
@@ -158,19 +167,20 @@ namespace PhotoApp.Controllers
                         return StatusCode(401);
 
                     SqlImageDbHelper dbHelper = new SqlImageDbHelper();
-                    bool loginStatus = dbHelper.LoginUser(usernameClaim, password.oldpassword);
-                    if (loginStatus)
+                    ErrorObjects loginStatus = dbHelper.LoginUser(usernameClaim, password.oldpassword);
+                    if (loginStatus.status)
                     {
                         Console.WriteLine("Old password validated. Updating new password");
-                        bool status = dbHelper.UpdatePassword(usernameClaim, password.newpassword);
-                        if (status)
+                        ErrorObjects updateResponse = dbHelper.UpdatePassword(usernameClaim, password.newpassword);
+                        if (updateResponse.status)
                         {
                             string tokenString = GenerateJSONWebToken(usernameClaim);
-                            return Ok(new { token = tokenString });
+                            return Ok(new { status = true, message = "Password updated successfully", token = tokenString });
                         }
+                        return BadRequest(new { status = false, message = "Operation failed" });
                     }
                     Console.WriteLine("Unable to login with old password");
-                    return BadRequest("Please check the old password. Authentication failed with old password");
+                    return BadRequest(new { status = false, message = "Incorrect old password"});
                 }
             }
             catch (Exception ex)
@@ -178,7 +188,7 @@ namespace PhotoApp.Controllers
                 Console.WriteLine("Exception :" + ex.Message);
             }
 
-            return BadRequest("Error updating profile image");
+            return BadRequest(new { status = false, message = "Operation failed" });
         }
 
         private string GenerateJSONWebToken(string userName)
