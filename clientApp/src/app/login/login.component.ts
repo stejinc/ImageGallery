@@ -24,19 +24,19 @@ export class LoginComponent implements OnInit {
       this.pageLoading = true;
       this.formGroup.disable();
       this.authService.login(this.formGroup.value).subscribe(result=>{
-        if(result.token){
+        if(result != null && result.status){
+          this.errorMsg = result.message ?? "Login Successful";
           this.formGroup.enable();
           this.pageLoading = false;
           console.log(result);
-          this.errorMsg = 'null';
           localStorage.setItem('token', result.token);
           this.routerService.navigate(['home']);
         }
       }, error => {
         this.formGroup.enable();
         this.pageLoading = false;
-        console.log("error:" + error);
-        this.errorMsg = "Login failed";
+        console.log("error:" + error.error);
+        this.errorMsg = error.error.message ?? "Login failed";
       });
     }
   }

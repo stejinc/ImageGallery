@@ -1,7 +1,10 @@
 <div class="container" style="border: 2px solid white;">
-    <div style="padding-bottom: 20%;">
-        <div style="margin: 50px;" class="row justify-content-center">
-            <img class="profile-pic" src="data:image/jpg;base64,{{UsersInfo.profilePic}}">
+    <div style="padding-bottom: 10%;">
+        <div style="margin: 10px;" class="row justify-content-center">
+            <img class="profile-pic" [src]="UsersInfo.profilePic">
+        </div>
+        <div style="margin: 5px;" class="row justify-content-center">
+            <h1 style="font-style: bold; text-align: center; width: 200px; color: red;">{{UsersInfo.firstName}} {{UsersInfo.lastName == 'null' ? '' : UsersInfo.lastName}}</h1>
         </div>
         <div class="row justify-content-center">
             <div class="col-md-2 col-sm-12">
@@ -36,5 +39,11 @@
                 <h3 class="errorMsg" *ngIf="errorMsg!='null'">{{errorMsg}}</h3>
             </div>
         </div>
+        <div class="row justify-content-sm-center">
+            <div class="col-lg-2 col-md-2">
+                <button routerLink="/home" class="btn btn-primary" type="button" style="margin-top: 20px; width: 200px;">Cancel</button>
+            </div>
+        </div>
+            
     </div>
 </div>

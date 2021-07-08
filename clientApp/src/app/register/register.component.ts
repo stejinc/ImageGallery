@@ -11,6 +11,7 @@ import { AuthServiceService } from '../auth-service.service';
 export class RegisterComponent implements OnInit {
   registerFormGroup: FormGroup;
   errorMsg: string = "null";
+  pageLoading : boolean = false;
   constructor(private formBuilder:FormBuilder,private authService:AuthServiceService, private routerService:Router) { }
 
   ngOnInit(): void {
@@ -19,7 +20,8 @@ export class RegisterComponent implements OnInit {
 
   registerProcess(){
     if(this.registerFormGroup.valid){
-      
+      this.registerFormGroup.disable();
+      this.pageLoading = true;
       const formBody = this.registerFormGroup.value;
       const formData = new FormData();
 
@@ -31,15 +33,24 @@ export class RegisterComponent implements OnInit {
       formData.append("gender",formBody.gender);
       formData.append("profilePic",formBody.profilePic);
       this.authService.register(formData).subscribe(result =>{
-        if(result.token){
-          console.log(result);
-          this.errorMsg = 'null';
-          localStorage.setItem('token', result.token);
-          this.routerService.navigate(['home']);
+        this.pageLoading = false;
+        this.registerFormGroup.enable();
+        if(result != null && result.status){
+          if(result.token != null){
+            console.log(result);
+            this.errorMsg = result.message ?? "User registered Successfully";
+            localStorage.setItem('token', result.token);
+            this.routerService.navigate(['home']);
+          }
+          else{
+            this.errorMsg = result.message ?? "Token failure";
+          }
         }
       },
       error =>{
-        this.errorMsg = "Registration Failed";
+        this.pageLoading = false;
+        this.registerFormGroup.enable();
+        this.errorMsg = error.error.message ?? "Registration failed";
       });
     }
   }

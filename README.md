@@ -1,5 +1,5 @@
 # ImageGallery
-A simple Web application to store and retrieve images.
+A simple web application to store and retrieve images.
 
 
 Design

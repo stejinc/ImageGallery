@@ -9,8 +9,8 @@ namespace ImageGalleryDbHelper.Models
     {
         public string userName { get; set; }
         public string firstName { get; set; }
-        public string? lastName { get; set; }
-        public string? dateOfBirth { get; set; }
+        public string lastName { get; set; }
+        public string dateOfBirth { get; set; }
         public string profilePic { get; set; }
         public int gender { get; set; }
 
