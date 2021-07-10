@@ -1,8 +1,26 @@
-#fixedbutton {
+#fixedaddimagebutton {
     position: fixed;
     bottom: 70px;
     right: 60px; 
     font-size: 50px;
+}
+
+#fixedoffsetbutton{
+    margin-left: 50px;
+    margin-right: 50px;
+    position: fixed;
+    bottom: 4%;
+    right: 42%; 
+}
+
+#fixedoffsetbutton > * {
+    display : inline;
+}
+
+#fixedoffsetbutton h3{
+    padding : 5px 20px;
+    margin : 0px 5px;
+    background-color: white;
 }
 
 .image-size{

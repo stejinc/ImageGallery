@@ -24,13 +24,11 @@ Features completed till now:
 6.Profile setting view
 7.Update profile picture
 8.Update profile password ( Password is stored as SHA256 hash string in db )
-
-InProgress:
-1.Improve logs for both backend and front end.
-
+9.Paginated views for images
+10.Improved error handling and logs for both backend and front end.
 
 Future enchancements:
-1.Add pagination for images
+1.Implement file logs with log4net
 2.Share image (Public, Private)
 3.Share image view
 4.Tag image

@@ -12,4 +12,15 @@ namespace ImageGalleryDbHelper.Models
         public string image { get; set; }
         public string description { get; set; }
     }
+
+    public class ImageContentDTO
+    {
+        public List<ImageContent> imageContents;
+        public bool next;
+        public ImageContentDTO()
+        {
+            imageContents = new List<ImageContent>();
+            next = false;
+        }
+    }
 }
