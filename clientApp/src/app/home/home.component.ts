@@ -9,17 +9,41 @@ import { IImageContent } from '../IImageContent';
 })
 export class HomeComponent implements OnInit {
 
-  allImages: IImageContent[];
-  pageLoading = false;
-  iconVisible = true;
+  allImages: IImageContent[] = [];
+  pageLoading: boolean = false;
+  iconVisible: boolean = true;
+  next : boolean = false;
+  pageOffset = 0;
+  pageSize = 8;
+  PrevButtonStatus = true;
+  NextButtonStatus = true;
+
   constructor(private authService: AuthServiceService) { }
 
-  ngOnInit(): void {
+  IncrOffset(){
+    this.LoadImages(this.pageOffset+1);
+  }
+
+  DcrOffset(){
+    this.LoadImages(this.pageOffset-1);
+  }
+
+  LoadImages(updatedOffset: number){
     this.pageLoading = true;
-    this.authService.getAllImages().subscribe(response => {
+    this.authService.getAllImages(this.pageSize,updatedOffset).subscribe(response => {
       console.log(response.message);
       if(response != null && response.status)
       {
+        this.pageOffset = updatedOffset;
+        this.next = response.isNext;
+        if(this.pageOffset == 0)
+          this.PrevButtonStatus = true;
+        else
+          this.PrevButtonStatus = false;
+        if(!this.next)
+          this.NextButtonStatus = true;
+        else
+          this.NextButtonStatus = false;
         this.pageLoading = false;
         this.allImages = response.data;
       }
@@ -30,6 +54,10 @@ export class HomeComponent implements OnInit {
     error => {
       this.pageLoading = false;
     })
+  }
+
+  ngOnInit(): void {
+    this.LoadImages(this.pageOffset);
   }
   mouseEnter(){
     this.iconVisible = true;

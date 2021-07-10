@@ -15,7 +15,12 @@
         </div>
     </div>
 </div>
+<div id="fixedoffsetbutton" *ngIf="!(PrevButtonStatus&&NextButtonStatus)">
+    <button [disabled]="PrevButtonStatus" type="button" (click)="DcrOffset()" class="btn btn-primary">Prev</button>
+    <h3>{{pageOffset+1}}</h3>
+    <button [disabled]="NextButtonStatus" type="button" (click)="IncrOffset()" class="btn btn-primary">Next</button>
+  </div>
 <div *ngIf="pageLoading" class="spinner"></div>
 <a routerLink="addImage">
-    <mat-icon id="fixedbutton">add_a_photo</mat-icon>
+    <mat-icon id="fixedaddimagebutton">add_a_photo</mat-icon>
 </a>

@@ -145,6 +145,31 @@ namespace ImageGalleryDbHelper
             }
         }
 
+        private int? GetTotalImageCountPerUser(string userName)
+        {
+            if (getConnectionToSql())
+            {
+                try
+                {
+                    using (conn)
+                    {
+                        SqlCommand cmd = new SqlCommand("Select Count(username) from userimages where username = @username", conn);
+                        cmd.Parameters.Add("@username", SqlDbType.NVarChar, 50).Value = userName;
+
+                        conn.Open();
+                        int Count = (int)cmd.ExecuteScalar();
+                        return Count;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Exception occured while updating password");
+                }
+                return null;
+            }
+            return null;
+        }
+
         public ErrorObjects UpdateProfilePic(string usernameClaim, byte[] fileBytes)
         {
             ErrorObjects err = new ErrorObjects();
@@ -350,22 +375,27 @@ namespace ImageGalleryDbHelper
             }
         }
 
-        public async Task<List<ImageContent>> RetrieveAllImages(string userName)
+        public ImageContentDTO RetrievePaginatedImages(string userName, int pageSize = 8, int pageOffset = 0)
         {
             List<ImageContent> usersAllImages = new List<ImageContent>();
+            ImageContentDTO contentDTO = new ImageContentDTO();
             if (getConnectionToSql())
             {
                 try
                 {
                     using (conn)
                     {
-                        SqlCommand command = new SqlCommand(
-                        "Select imageid, image, description from userimages where username=@username order by imageid desc", conn);
+                        //SqlCommand command = new SqlCommand(
+                        //"Select imageid, image, description from userimages where username=@username order by imageid desc", conn);
 
-                        command.Parameters.Add("@username",
-                           SqlDbType.NVarChar, 50).Value = userName;
+                        //Use procedure to get paginated results
+                        SqlCommand command = new SqlCommand("PaginatedResult", conn);
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@pagesize", pageSize);
+                        command.Parameters.AddWithValue("@pageoffset", pageOffset);
+                        command.Parameters.AddWithValue("@username", userName);
                         conn.Open();
-                        SqlDataReader reader = await command.ExecuteReaderAsync();
+                        SqlDataReader reader = command.ExecuteReader();
 
                         while (reader.Read())
                         {
@@ -379,9 +409,19 @@ namespace ImageGalleryDbHelper
 
                             usersAllImages.Add(content);
                         }
-                    }
+                        contentDTO.imageContents = usersAllImages;
+                        int CurrentRetrievedCount = ++pageOffset * pageSize;
+                        int? Count = GetTotalImageCountPerUser(userName);
+                        if (Count == null || (Count - CurrentRetrievedCount < 0))
+                            return contentDTO;
 
-                    return usersAllImages;
+                        if(Count - CurrentRetrievedCount > 0)
+                        {
+                            contentDTO.next = true;
+                            return contentDTO;
+                        }
+                        return contentDTO;
+                    }
                 }
                 catch (Exception ex)
                 {

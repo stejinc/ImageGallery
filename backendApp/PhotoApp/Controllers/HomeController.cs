@@ -101,8 +101,31 @@ namespace PhotoApp.Controllers
 
         }
 
-        [HttpGet("home/api/image")]
-        public IActionResult getAllImage()
+        //[HttpGet("home/api/imagecount")]
+        //public IActionResult imageCount()
+        //{
+        //    SqlImageDbHelper dbHelper = new SqlImageDbHelper();
+
+        //    string userName = null;
+        //    var currentUser = HttpContext.User;
+        //    if (currentUser.HasClaim(x => x.Type == "UserName"))
+        //    {
+        //        userName = currentUser.Claims.FirstOrDefault(x => x.Type == "UserName").Value;
+        //        if (userName == null)
+        //            return BadRequest(new { status = false, message = "Invalid username" });
+        //        int? Count = dbHelper.GetTotalImageCountPerUser(userName);
+
+        //        if (Count == null)
+        //            return BadRequest(new { status = false, message = "Failed to retrieve image count" });
+
+        //        return Ok(new { status = true, count = Count, message = "Success" });
+        //    }
+
+        //    return StatusCode(401);
+        //}
+
+        [HttpGet("home/api/image/{pageSize}/{pageOffset}")]
+        public IActionResult getAllImage(int pageSize, int pageOffset)
         {
             SqlImageDbHelper dbHelper = new SqlImageDbHelper();
 
@@ -113,12 +136,12 @@ namespace PhotoApp.Controllers
                 userName = currentUser.Claims.FirstOrDefault(x => x.Type == "UserName").Value;
                 if (userName == null)
                     return BadRequest(new { status = false, message = "Invalid username" });
-                var image = dbHelper.RetrieveAllImages(userName);
+                var image = dbHelper.RetrievePaginatedImages(userName, pageSize, pageOffset);
 
-                if (image.Result == null)
+                if (image == null)
                     return BadRequest(new { status = false, message = "Failed to retrieve images" });
 
-                return Ok(new { status = true, data = image.Result, message = "Success" });
+                return Ok(new { status = true, isNext = image.next, data = image.imageContents, message = "Success" });
             }
 
             return StatusCode(401);

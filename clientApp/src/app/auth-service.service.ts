@@ -35,8 +35,8 @@ export class AuthServiceService {
       return this.http.post(`${baseUrl}accounts/api/register`, data);
     }
 
-    getAllImages():Observable<any>{
-      return this.http.get<any>(`${baseUrl}home/api/image`);
+    getAllImages(pageSize:number, pageOffset:number):Observable<any>{
+      return this.http.get<any>(`${baseUrl}home/api/image/${pageSize}/${pageOffset}`);
     }
 
     addImage(data:FormData):Observable<any>{
