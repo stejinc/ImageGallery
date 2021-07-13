@@ -6,18 +6,25 @@
         <form fxLayoutAlign="stretch" fxLayout="column" class="login-form" [formGroup]="imageFormGroup" (ngSubmit)="uploadImage()">
 
           <input style="margin:20px 0px;" type="file" class="form-control" id="customFile" (change)="onFileSelect($event)"/>
-
-            <mat-form-field>
-                <mat-label>Description</mat-label>
-                <input type="" matInput placeholder="Description" formControlName="description">
-            </mat-form-field>
+          
+          <mat-label>Share Option</mat-label>
+            <mat-select style="width: 150px;" [(value)]="selectedOption" class="form-control">
+              <mat-option *ngFor="let share of shareOptions" [value]="share">
+                {{share}}
+              </mat-option>
+            </mat-select>
+          
+          <mat-form-field>
+              <mat-label>Description</mat-label>
+              <input type="" matInput placeholder="Description" formControlName="description">
+          </mat-form-field>
               
 
-            <button style="margin:20px 0px;" mat-raised-button type="submit">Upload</button>
-            <a routerLink="/home" mat-raised-button type="button">Cancel</a>
+          <button style="margin:20px 0px;" mat-raised-button type="submit">Upload</button>
+          <a routerLink="/home" mat-raised-button type="button">Cancel</a>
 
-            <h3 class="errorMsg" *ngIf="errorMsg!='null'">{{errorMsg}}</h3>
-          </form>
+          <h3 class="errorMsg" *ngIf="errorMsg!='null'">{{errorMsg}}</h3>
+        </form>
     </mat-card>
 </div>
 

@@ -11,6 +11,7 @@ namespace ImageGalleryDbHelper.Models
         public long imageId { get; set; }
         public string image { get; set; }
         public string description { get; set; }
+        public string sharedOption { get; set; }
     }
 
     public class ImageContentDTO

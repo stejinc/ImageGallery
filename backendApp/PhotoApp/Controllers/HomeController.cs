@@ -59,7 +59,7 @@ namespace PhotoApp.Controllers
                         // }
 
                         SqlImageDbHelper dbHelper = new SqlImageDbHelper();
-                        ErrorObjects uploadStatus = dbHelper.StoreUserImage(usernameClaim, fileBytes, null, imageDetails.description);
+                        ErrorObjects uploadStatus = dbHelper.StoreUserImage(usernameClaim, fileBytes, null, imageDetails.shareOption, imageDetails.description);
                         return Ok(new { status = uploadStatus.status, message = uploadStatus.message });
                     }
                     else
@@ -125,7 +125,7 @@ namespace PhotoApp.Controllers
         //}
 
         [HttpGet("home/api/image/{pageSize}/{pageOffset}")]
-        public IActionResult getAllImage(int pageSize, int pageOffset)
+        public IActionResult getUserImages(int pageSize, int pageOffset)
         {
             SqlImageDbHelper dbHelper = new SqlImageDbHelper();
 
@@ -145,6 +145,24 @@ namespace PhotoApp.Controllers
             }
 
             return StatusCode(401);
+
+        }
+
+        [AllowAnonymous]
+        [HttpGet("home/api/sharedimages/{pageSize}/{pageOffset}/{isLoggedIn}")]
+        public IActionResult getSharedImages(int pageSize, int pageOffset, bool isLoggedIn)
+        {
+            SqlImageDbHelper dbHelper = new SqlImageDbHelper();
+            string sharedOption = "public";
+            if (isLoggedIn)
+                sharedOption = "internal";
+
+            var image = dbHelper.RetrieveSharedPaginatedImages(pageSize, pageOffset, sharedOption);
+
+            if (image == null)
+                return BadRequest(new { status = false, message = "Failed to retrieve images" });
+
+            return Ok(new { status = true, isNext = image.next, data = image.imageContents, message = "Success" });
 
         }
 

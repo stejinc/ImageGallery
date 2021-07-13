@@ -35,8 +35,16 @@ export class AuthServiceService {
       return this.http.post(`${baseUrl}accounts/api/register`, data);
     }
 
-    getAllImages(pageSize:number, pageOffset:number):Observable<any>{
+    getUserImages(pageSize:number, pageOffset:number):Observable<any>{
       return this.http.get<any>(`${baseUrl}home/api/image/${pageSize}/${pageOffset}`);
+    }
+    
+    getSharedImages(pageSize:number, pageOffset:number, isLoggedIn: boolean):Observable<any>{
+      return this.http.get<any>(`${baseUrl}home/api/sharedimages/${pageSize}/${pageOffset}/${isLoggedIn}`);
+    }
+
+    deleteImage(imageId : number):Observable<any>{
+      return this.http.delete(`${baseUrl}home/api/image/${imageId}`);
     }
 
     addImage(data:FormData):Observable<any>{

@@ -30,7 +30,7 @@ export class LoginComponent implements OnInit {
           this.pageLoading = false;
           console.log(result);
           localStorage.setItem('token', result.token);
-          this.routerService.navigate(['home']);
+          this.routerService.navigate(['sharedimages']);
         }
       }, error => {
         this.formGroup.enable();

@@ -12,7 +12,14 @@ export class AddImageComponent implements OnInit {
   imageFormGroup : FormGroup;
   errorMsg: string = "null";
   pageLoading = false;
-
+  shareOptions: string[] = [
+    "public", //Displayed to everyone including non-registered users
+    "internal", //Displayed to registered users only
+    "private" //No sharing only personal display
+  ];
+  
+  selectedOption = this.shareOptions[2];
+  
   constructor(private authService: AuthServiceService, private routerService:Router) { }
 
   ngOnInit(): void {
@@ -24,10 +31,9 @@ export class AddImageComponent implements OnInit {
     if(this.imageFormGroup.valid){
       const formBody= this.imageFormGroup.value;
       const formData = new FormData();
-
       formData.set('image', formBody.image);
       formData.set('description', formBody.description);
-      
+      formData.set('shareOption', this.selectedOption);
       this.authService.addImage(formData).subscribe(response => {
         if(response != null && response.status){
           console.log(response);
@@ -53,6 +59,9 @@ export class AddImageComponent implements OnInit {
       image : new FormControl('', [Validators.required]),
       description: new FormControl('')
     });
+  }
+  updateShareoption(event : Event){
+    console.log(event);
   }
 
   onFileSelect(event : Event){
