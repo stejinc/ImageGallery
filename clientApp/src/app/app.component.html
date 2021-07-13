@@ -5,9 +5,10 @@
   </mat-toolbar> -->
   <div class="topnav">
     <div>
-      <a>Image Gallery</a>
+      <a routerLink="/sharedimages" routerLinkActive="active">Image Gallery</a>
     </div>
     <div class="topnav-right">
+      <a routerLink="/home" routerLinkActive="active">My Images</a>
       <a routerLink="/login" routerLinkActive="active" *ngIf="!authService.isLoggedIn()">Login</a>
       <a routerLink="/register" *ngIf="!authService.isLoggedIn()" routerLinkActive="active">Register</a>
       <a routerLink="/settings" *ngIf="authService.isLoggedIn()" routerLinkActive="active">Settings</a>

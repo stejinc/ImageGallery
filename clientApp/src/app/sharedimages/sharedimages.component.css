@@ -1,8 +1,6 @@
-#fixedaddimagebutton {
-    position: fixed;
-    bottom: 70px;
-    right: 60px; 
-    font-size: 50px;
+.image-size{
+    height: 300px;
+    width: 400px;
 }
 
 #fixedoffsetbutton{
@@ -28,7 +26,10 @@
     width: 60%;
 }
 
-.image-size{
-    height: 300px;
-    width: 400px;
+#fixedcancelbutton{
+    margin-left: 50px;
+    margin-right: 50px;
+    position: fixed;
+    bottom: 4.5%;
+    right: 35%;
 }

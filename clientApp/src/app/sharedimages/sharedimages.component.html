@@ -1,10 +1,13 @@
-<!-- <div class="d-flex flex-row bd-highlight mb-3" style="margin: 30px;"> -->
-
 <div class="container" style="margin-top: 20px;">
     <div *ngIf="!ZoomImage">
+        <div class="row justify-content-center">
+            <div class="col-lg-12 text-center">
+                <h1 class="font-weight-bold text-uppercase text-light bg-dark">{{isLoggedIn === false ? "Public" : "Internal"}} Shared Images </h1>
+            </div>
+        </div>
         <div class="row">
             <div style="margin-top: 20px;" class="col-lg-3 col-md-4 col-sm-6" *ngFor="let test of allImages">
-                <img #src (click)="zoomImage(src)" id="{{test.imageId}}"  title="{{test.description}}"
+                <img #src (click)="zoomImage(src)" id="{{test.imageId}}" title="{{test.description}}"
                     class="img-thumbnail img-fluid image-size" src="data:image/jpg;base64,{{test.image}}" />
             </div>
         </div>
@@ -15,23 +18,21 @@
             <button [disabled]="NextButtonStatus" type="button" (click)="IncrOffset()"
                 class="btn btn-primary">Next</button>
         </div>
+        <a id="fixedcancelbutton" *ngIf="isLoggedIn&&!pageLoading" routerLink="/home" mat-raised-button type="button"
+            class="btn btn-danger">Cancel</a>
     </div>
     <div *ngIf="ZoomImage">
         <div class="row justify-content-center">
             <img [src]="ImageSrcZoom" class="zoom" />
         </div>
         <div class="row justify-content-center">
-            <div class="col-lg-6 text-center">
+            <div class="col-lg-12 text-center">
                 <button type="button" class="btn btn-danger my-2 my-sm-3" (click)="HideZoom()">Cancel</button>
             </div>
-            <div class="col-lg-6 text-center">
-                <button type="button" class="btn btn-danger my-2 my-sm-3" (click)="DeleteImage()">Delete</button>
-            </div>
         </div>
-        <h3 class="errorMsg" *ngIf="errorMsg!='null'">{{errorMsg}}</h3>
     </div>
 </div>
+
+
+
 <div *ngIf="pageLoading" class="spinner"></div>
-<a routerLink="addImage">
-    <mat-icon id="fixedaddimagebutton">add_a_photo</mat-icon>
-</a>

@@ -30,7 +30,7 @@ namespace ImageGalleryDbHelper
             return true;
         }
 
-        public ErrorObjects StoreUserImage(string userName, byte[] image, byte[] thumbnail, string description)
+        public ErrorObjects StoreUserImage(string userName, byte[] image, byte[] thumbnail, string shareOption, string description)
         {
             ErrorObjects err = new ErrorObjects();
             int insertedCount = 0;
@@ -42,8 +42,8 @@ namespace ImageGalleryDbHelper
                     {
                         SqlCommand command = new SqlCommand(
                         "INSERT INTO userimages (username, image, " +
-                        " description) " +
-                        "Values(@username, @image, @description)", conn);
+                        " description, shareoption) " +
+                        "Values(@username, @image, @description, @shareoption)", conn);
 
                         command.Parameters.Add("@username",
                            SqlDbType.NVarChar, 50).Value = userName;
@@ -51,6 +51,8 @@ namespace ImageGalleryDbHelper
                             SqlDbType.NVarChar, 50).Value = description ?? "";
                         command.Parameters.Add("@image",
                             SqlDbType.VarBinary, image.Length).Value = image;
+                        command.Parameters.Add("@shareoption",
+                            SqlDbType.VarChar, 8).Value = shareOption;
                         // command.Parameters.Add("@thumbnail",
                         //     SqlDbType.VarBinary, thumbnail.Length).Value = thumbnail;
                         conn.Open();
@@ -145,7 +147,7 @@ namespace ImageGalleryDbHelper
             }
         }
 
-        private int? GetTotalImageCountPerUser(string userName)
+        private int? GetTotalImageCountPerUser(string userName, string sharedoption = null)
         {
             if (getConnectionToSql())
             {
@@ -153,7 +155,7 @@ namespace ImageGalleryDbHelper
                 {
                     using (conn)
                     {
-                        SqlCommand cmd = new SqlCommand("Select Count(username) from userimages where username = @username", conn);
+                        SqlCommand cmd = cmd = new SqlCommand("Select Count(username) from userimages where username = @username", conn);
                         cmd.Parameters.Add("@username", SqlDbType.NVarChar, 50).Value = userName;
 
                         conn.Open();
@@ -168,6 +170,98 @@ namespace ImageGalleryDbHelper
                 return null;
             }
             return null;
+        }
+
+        private int? GetTotalSharedImageCount(string sharedoption)
+        {
+            if (getConnectionToSql())
+            {
+                try
+                {
+                    using (conn)
+                    {
+                        SqlCommand cmd;
+                        if (sharedoption == "internal")
+                            cmd = new SqlCommand("Select Count(imageid) from userimages where shareoption = 'internal' or shareoption = 'public'", conn);
+                        else
+                            cmd = new SqlCommand("Select Count(imageid) from userimages where shareoption = 'public'", conn);
+
+                        conn.Open();
+                        int Count = (int)cmd.ExecuteScalar();
+                        return Count;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Exception occured while updating password");
+                }
+                return null;
+            }
+            return null;
+        }
+
+        public ImageContentDTO RetrieveSharedPaginatedImages(int pageSize, int pageOffset, string sharedOption)
+        {
+            List<ImageContent> usersAllImages = new List<ImageContent>();
+            ImageContentDTO contentDTO = new ImageContentDTO();
+            if (getConnectionToSql())
+            {
+                try
+                {
+                    using (conn)
+                    {
+                        //SqlCommand command = new SqlCommand(
+                        //"Select imageid, image, description from userimages where username=@username order by imageid desc", conn);
+
+                        //Use procedure to get paginated results
+                        SqlCommand command;
+                        if (sharedOption == "public")
+                            command = new SqlCommand("[SharedPublicPaginatedResult]", conn);
+                        else
+                            command = new SqlCommand("[SharedInternalPaginatedResult]", conn);
+
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@pagesize", pageSize);
+                        command.Parameters.AddWithValue("@pageoffset", pageOffset);
+                        conn.Open();
+                        SqlDataReader reader = command.ExecuteReader();
+
+                        while (reader.Read())
+                        {
+                            byte[] imageData = (byte[])reader["image"];
+                            ImageContent content = new ImageContent()
+                            {
+                                imageId = (long)reader["imageid"],
+                                image = Convert.ToBase64String(imageData, 0, imageData.Length),
+                                description = (string)reader["description"],
+                                sharedOption = (string)reader["shareoption"]
+                            };
+
+                            usersAllImages.Add(content);
+                        }
+                        contentDTO.imageContents = usersAllImages;
+                        int CurrentRetrievedCount = ++pageOffset * pageSize;
+                        int? Count = GetTotalSharedImageCount(sharedOption);
+                        if (Count == null || (Count - CurrentRetrievedCount < 0))
+                            return contentDTO;
+
+                        if (Count - CurrentRetrievedCount > 0)
+                        {
+                            contentDTO.next = true;
+                            return contentDTO;
+                        }
+                        return contentDTO;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error occured while retriving image from sql server");
+                    Console.WriteLine("Error exception: " + ex.Message);
+                    return null;
+                }
+            }
+            else
+                return null;
         }
 
         public ErrorObjects UpdateProfilePic(string usernameClaim, byte[] fileBytes)
@@ -404,7 +498,8 @@ namespace ImageGalleryDbHelper
                             {
                                 imageId = (long)reader["imageid"],
                                 image = Convert.ToBase64String(imageData, 0, imageData.Length),
-                                description = (string)reader["description"]
+                                description = (string)reader["description"],
+                                sharedOption = (string)reader["shareoption"]
                             };
 
                             usersAllImages.Add(content);

@@ -13,5 +13,6 @@ namespace PhotoApp.Models
     public class UserImages : ProfileImage
     {
         public string description { get; set; }
+        public string shareOption { get; set; }
     }
 }

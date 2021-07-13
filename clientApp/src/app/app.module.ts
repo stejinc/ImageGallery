@@ -12,7 +12,7 @@ import {MatDatepickerModule} from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import {MatRadioModule} from '@angular/material/radio';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
-
+import {MatSelectModule} from '@angular/material/select';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -27,6 +27,7 @@ import { RegisterComponent } from './register/register.component';
 import { AddImageComponent } from './add-image/add-image.component';
 import { SideBarUserDetailsComponent } from './home/side-bar-user-details/side-bar-user-details.component';
 import { SettingsComponent } from './settings/settings.component';
+import { SharedimagesComponent } from './sharedimages/sharedimages.component';
 
 @NgModule({
   declarations: [
@@ -36,14 +37,15 @@ import { SettingsComponent } from './settings/settings.component';
     RegisterComponent,
     AddImageComponent,
     SideBarUserDetailsComponent,
-    SettingsComponent
+    SettingsComponent,
+    SharedimagesComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,FlexLayoutModule,MatFormFieldModule,MatInputModule,MatButtonModule,MatCardModule,
     MatToolbarModule,HttpClientModule,FormsModule,ReactiveFormsModule,MatGridListModule,MatIconModule,
-    MatDatepickerModule,MatNativeDateModule,MatRadioModule,MatProgressSpinnerModule
+    MatDatepickerModule,MatNativeDateModule,MatRadioModule,MatProgressSpinnerModule,MatSelectModule
   ],
   providers: [AuthServiceService,
   {
