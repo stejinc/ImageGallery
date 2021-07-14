@@ -1,6 +1,6 @@
 # ImageGallery
 A simple web application to store and retrieve images.
-
+Hosted on GCP vm instance : http://35.244.56.95/
 
 Design
 Frontend - Angular
